@@ -1,0 +1,11 @@
+{
+  "$schema": "https://langgra.ph/schema.json",
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./src/deep_agent/graph.py:deep_agent_graph",
+    "researcher": "./src/deep_agent/graph.py:researcher_graph",
+    "critic": "./src/deep_agent/graph.py:critic_graph"
+  },
+  "env": ".env",
+  "image_distro": "wolfi"
+}
