@@ -4,7 +4,7 @@ Deployment template for a deep agent built with `create_deep_agent(...)`.
 
 ## What this template gives you
 
-- A deployable deep agent graph at `src/deep_agent/graph.py`.
+- A deployable deep agent graph at `src/app/main.py`.
 - Explicit workflow prompt (plan, delegate, critique, finalize).
 - Two predefined sub-agents (`researcher`, `critic`).
 - Human-in-the-loop interrupts on `execute` and `write_file`.

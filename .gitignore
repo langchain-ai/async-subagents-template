@@ -11,3 +11,5 @@ dist/
 .langgraph_api/
 .DS_Store
 .claude/
+.env.example
+.idea

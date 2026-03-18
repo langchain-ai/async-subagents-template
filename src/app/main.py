@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 import httpx
 from deepagents import create_deep_agent
-from langchain_core.tools import tool
+from langchain.tools import tool
 
 DEFAULT_MODEL = os.getenv("DEEP_AGENT_MODEL", "anthropic:claude-sonnet-4-6")
 
@@ -88,7 +88,7 @@ ASYNC_SUBAGENTS = [
 ]
 
 
-deep_agent_graph = create_deep_agent(
+supervisor_agent = create_deep_agent(
     model=DEFAULT_MODEL,
     tools=[utc_now, web_fetch],
     system_prompt=SYSTEM_PROMPT,
@@ -121,5 +121,3 @@ critic_graph = create_deep_agent(
     },
     name="critic",
 )
-
-graph = deep_agent_graph

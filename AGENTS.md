@@ -1,6 +1,6 @@
 # Agents
 
-All agents are defined in `src/deep_agent/graph.py`.
+All agents are defined in `src/app/main.py`.
 
 ## Conventions
 

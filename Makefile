@@ -26,7 +26,7 @@ integration-tests:
 	uv run python -m pytest tests/integration_tests -q
 
 lint:
-	uv run python -m ruff check src tests
+	uv run python -m ruff check app tests
 
 format:
-	uv run python -m ruff format src tests
+	uv run python -m ruff format app tests

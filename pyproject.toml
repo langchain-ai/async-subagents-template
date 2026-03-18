@@ -24,8 +24,9 @@ dev = [
 ]
 
 [tool.uv.build-backend]
-module-name = "deep_agent"
-source-include = ["langgraph.json", ".env.example", "Makefile"]
+module-name = "app"
+module-root = "src"
+source-include = ["langgraph.json"]
 
 [tool.uv.sources]
 deepagents = { path = "../deepagents/libs/deepagents" }
