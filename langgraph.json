@@ -2,9 +2,8 @@
   "$schema": "https://langgra.ph/schema.json",
   "dependencies": ["."],
   "graphs": {
-    "agent": "./src/app/main.py:deep_agent_graph",
-    "researcher": "./src/app/main.py:researcher_graph",
-    "critic": "./src/app/main.py:critic_graph"
+    "agent": "./src/app/main.py:main_agent",
+    "researcher": "./src/app/main.py:researcher_graph"
   },
   "env": ".env",
   "image_distro": "wolfi"

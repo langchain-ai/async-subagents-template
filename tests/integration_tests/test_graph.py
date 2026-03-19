@@ -12,7 +12,7 @@ if not os.getenv("ANTHROPIC_API_KEY"):
     )
 
 
-async def test_deep_agent_smoke() -> None:
+async def test_async_subagents_smoke() -> None:
     result = await supervisor_agent.ainvoke(
         {
             "messages": [

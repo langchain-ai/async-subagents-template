@@ -1,7 +1,7 @@
 [project]
-name = "deep-agent-template"
+name = "async-subagents-template"
 version = "0.1.0"
-description = "Deep Agent template for LangSmith/LangGraph deployment"
+description = "Async subagents template for LangSmith/LangGraph deployment"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

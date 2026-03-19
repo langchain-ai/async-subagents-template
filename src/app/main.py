@@ -1,24 +1,32 @@
-"""Deep Agent graph for deployment."""
+"""Async subagents graphs for LangSmith deployment."""
 
 from __future__ import annotations
 
+import logging
 import os
 from datetime import datetime, timezone
+from typing import Any
 
 import httpx
-from deepagents import create_deep_agent
+from deepagents import AsyncSubAgent, create_deep_agent
+from langchain.agents.middleware.types import AgentMiddleware, AgentState
 from langchain.tools import tool
+from langgraph._internal._constants import CONF
+from langgraph.config import get_config
+from langgraph.runtime import Runtime
+from langgraph_sdk import get_client
 
-DEFAULT_MODEL = os.getenv("DEEP_AGENT_MODEL", "anthropic:claude-sonnet-4-6")
+DEFAULT_MODEL = os.getenv("ASYNC_SUBAGENTS_MODEL", "anthropic:claude-sonnet-4-6")
+logger = logging.getLogger(__name__)
 
 _http_client = httpx.AsyncClient(
-    headers={"User-Agent": "deep-agent/0.1"},
+    headers={"User-Agent": "async-subagents-template/0.1"},
     timeout=10,
     follow_redirects=True,
 )
 
 SYSTEM_PROMPT = """
-You are a deep agent.
+You are an async subagent supervisor.
 
 Workflow:
 1. Write and maintain a todo list for non-trivial requests.
@@ -51,6 +59,57 @@ You are a critical reviewer.
 """.strip()
 
 
+class CompletionNotifierMiddleware(AgentMiddleware[AgentState[Any], Any, Any]):
+    async def aafter_agent(
+        self, state: AgentState[Any], runtime: Runtime[Any]
+    ) -> dict[str, Any] | None:
+        """Notifier."""
+        config = get_config()
+        configurable = config.get(CONF, {})
+        parent_thread_id = configurable.get("parent_thread_id")
+        parent_assistant_id = configurable.get("parent_assistant_id")
+        subagent_name = configurable.get("subagent_name") or "general-purpose"
+        parent_url = configurable.get("parent_url")
+        parent_headers = configurable.get("parent_headers")
+
+        if not parent_thread_id or not parent_assistant_id:
+            return None
+
+        messages = state.get("messages", [])
+        last_msg = ""
+        if messages:
+            last = messages[-1]
+            if hasattr(last, "content"):
+                content = last.content
+                last_msg = content if isinstance(content, str) else str(content)
+            elif isinstance(last, dict):
+                content = last.get("content", "")
+                last_msg = content if isinstance(content, str) else str(content)
+
+        summary = last_msg[:500] if last_msg else "(completed)"
+        notification = f"[Async subagent '{subagent_name}' has completed] Result: {summary}"
+
+        try:
+            client = get_client(url=parent_url, headers=parent_headers)
+            await client.runs.create(
+                thread_id=parent_thread_id,
+                assistant_id=parent_assistant_id,
+                input={"messages": [{"role": "user", "content": notification}]},
+            )
+            logger.info(
+                "Notified parent thread %s that subagent '%s' completed",
+                parent_thread_id,
+                subagent_name,
+            )
+        except Exception:
+            logger.warning(
+                "Failed to notify parent thread %s",
+                parent_thread_id,
+                exc_info=True,
+            )
+        return None
+
+
 @tool
 def utc_now() -> str:
     """Return the current UTC timestamp in ISO format."""
@@ -74,21 +133,28 @@ async def web_fetch(url: str) -> str:
         return f"Error fetching {url}: {exc}"
 
 
-ASYNC_SUBAGENTS = [
+researcher_graph = create_deep_agent(
+    model=DEFAULT_MODEL,
+    tools=[utc_now, web_fetch],
+    system_prompt=RESEARCHER_SYSTEM_PROMPT,
+    middleware=[CompletionNotifierMiddleware()],
+    interrupt_on={
+        "execute": True,
+        "write_file": True,
+    },
+    name="researcher",
+)
+
+
+ASYNC_SUBAGENTS: list[AsyncSubAgent] = [
     {
         "name": "researcher",
         "description": "Use for evidence collection and source-grounded fact finding.",
         "graph_id": "researcher",
     },
-    {
-        "name": "critic",
-        "description": "Use for adversarial review of drafts and plans.",
-        "graph_id": "critic",
-    },
 ]
 
-
-supervisor_agent = create_deep_agent(
+main_agent = create_deep_agent(
     model=DEFAULT_MODEL,
     tools=[utc_now, web_fetch],
     system_prompt=SYSTEM_PROMPT,
@@ -97,27 +163,5 @@ supervisor_agent = create_deep_agent(
         "execute": True,
         "write_file": True,
     },
-    name="deep_agent",
-)
-
-researcher_graph = create_deep_agent(
-    model=DEFAULT_MODEL,
-    tools=[utc_now, web_fetch],
-    system_prompt=RESEARCHER_SYSTEM_PROMPT,
-    interrupt_on={
-        "execute": True,
-        "write_file": True,
-    },
-    name="researcher",
-)
-
-critic_graph = create_deep_agent(
-    model=DEFAULT_MODEL,
-    tools=[utc_now],
-    system_prompt=CRITIC_SYSTEM_PROMPT,
-    interrupt_on={
-        "execute": True,
-        "write_file": True,
-    },
-    name="critic",
+    name="main_agent",
 )
