@@ -5,7 +5,7 @@ Deployment template for a supervisor agent with async subagents using Deep Agent
 ## What this template gives you
 
 - A deployable supervisor graph at `src/app/main.py`.
-- Two predefined async subagents (`researcher`, `critic`).
+- One predefined async subagent (`researcher`).
 - Human-in-the-loop interrupts on `execute` and `write_file`.
 - A `uv`-managed local workflow with a small `Makefile` wrapper and starter tests.
 

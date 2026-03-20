@@ -98,7 +98,7 @@ ASYNC_SUBAGENTS: list[AsyncSubAgent] = [
     },
 ]
 
-main_agent = create_deep_agent(
+supervisor_agent = create_deep_agent(
     model=DEFAULT_MODEL,
     tools=[utc_now, web_fetch],
     system_prompt=SYSTEM_PROMPT,
@@ -107,5 +107,5 @@ main_agent = create_deep_agent(
         "execute": True,
         "write_file": True,
     },
-    name="main_agent",
+    name="supervisor_agent",
 )
