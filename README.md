@@ -8,7 +8,6 @@ Async subagents are background worker agents that a supervisor can launch and mo
 
 - A deployable supervisor graph at `src/app/main.py`.
 - One predefined async subagent (`researcher`).
-- Human-in-the-loop interrupts on `execute` and `write_file`.
 - A `uv`-managed local workflow with a small `Makefile` wrapper and starter tests.
 
 ## Prerequisites
