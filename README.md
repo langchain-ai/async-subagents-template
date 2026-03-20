@@ -2,6 +2,8 @@
 
 Deployment template for a supervisor agent with async subagents using Deep Agents, LangGraph, and LangSmith deployment.
 
+Async subagents are background worker agents that a supervisor can launch and monitor without blocking the conversation, enabling parallel workstreams, mid-flight updates, and graceful cancellation.
+
 ## What this template gives you
 
 - A deployable supervisor graph at `src/app/main.py`.
