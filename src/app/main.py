@@ -20,20 +20,6 @@ _http_client = httpx.AsyncClient(
     follow_redirects=True,
 )
 
-SYSTEM_PROMPT = """
-You are an async subagent supervisor.
-
-Workflow:
-1. Write and maintain a todo list for non-trivial requests.
-2. Delegate focused fact-finding to subagents when helpful.
-3. Store intermediate drafts in files when the task is long.
-4. Before finalizing, critique your work for risks, gaps, and missing constraints.
-5. Return concise, actionable output.
-
-- Prefer concrete evidence over assumptions.
-- State unresolved uncertainty explicitly.
-- Keep output compact unless the user asks for depth.
-""".strip()
 
 RESEARCHER_SYSTEM_PROMPT = """
 You are a focused researcher.
@@ -43,6 +29,7 @@ You are a focused researcher.
 - Report contradictions clearly.
 - Output should be concise and source-grounded.
 """.strip()
+
 
 @tool
 def utc_now() -> str:
@@ -85,6 +72,8 @@ ASYNC_SUBAGENTS: list[AsyncSubAgent] = [
     {
         "name": "researcher",
         "description": "Use for evidence collection and source-grounded fact finding.",
+        # graph_id must match the key in langgraph.json's "graphs" object,
+        # which tells LangGraph which graph to invoke for this subagent.
         "graph_id": "researcher",
     },
 ]
@@ -92,7 +81,6 @@ ASYNC_SUBAGENTS: list[AsyncSubAgent] = [
 supervisor_agent = create_deep_agent(
     model=DEFAULT_MODEL,
     tools=[utc_now, web_fetch],
-    system_prompt=SYSTEM_PROMPT,
     subagents=ASYNC_SUBAGENTS,
     interrupt_on={
         "execute": True,
