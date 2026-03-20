@@ -1,67 +1,54 @@
 # Async Subagents Template
 
-A minimal template for building and deploying an async subagent pattern with Deep Agents, LangGraph, and LangSmith deployment.
+Deployment template for a supervisor agent with async subagents using Deep Agents, LangGraph, and LangSmith deployment.
 
-## What's in this repo
+## What this template gives you
 
-### Application code
+- A deployable supervisor graph at `src/app/main.py`.
+- Two predefined async subagents (`researcher`, `critic`).
+- Human-in-the-loop interrupts on `execute` and `write_file`.
+- A `uv`-managed local workflow with a small `Makefile` wrapper and starter tests.
 
-- `src/app/main.py` defines the deployed graphs.
-- `src/app/__init__.py` marks the Python package.
+## Prerequisites
 
-The main graph is a supervisor-style agent that demonstrates:
-- async tools
-- async subagents (`researcher` and `critic`)
-- LangSmith/LangGraph deployment-ready graph exports
-- human-in-the-loop interrupts for `execute` and `write_file`
-
-### Configuration
-
-- `langgraph.json` registers the deployed supervisor and subagent graphs.
-- `pyproject.toml` defines dependencies and the `src/` package layout.
-- `.env.example` shows the expected local environment variables.
-
-### Tests
-
-- `tests/unit_tests/test_configuration.py` checks that the main async subagent graph compiles.
-- `tests/integration_tests/test_graph.py` runs a basic async smoke test.
-- `tests/conftest.py` contains shared pytest setup.
-
-Integration tests are skipped unless `ANTHROPIC_API_KEY` is set.
-
-### Local workflow
-
-- `Makefile` provides `install`, `dev`, `serve`, `test`, `integration-tests`, `lint`, and `format`.
-- `uv.lock` pins the resolved dependency set.
+- An API key for your model provider (Anthropic by default)
+- A [LangSmith](https://smith.langchain.com/) account (Plus plan or higher) to deploy
 
 ## Quickstart
 
-1. Sync dependencies and create a local environment file:
+1. Sync the project and configure environment:
 
 ```bash
 uv sync
 cp .env.example .env
 ```
 
-2. Start the local LangGraph dev server:
+2. Start the dev server:
 
 ```bash
-uv run langgraph dev
+uv run langgraph dev --n-jobs-per-worker 10
 ```
 
-3. Run the unit tests:
-
-```bash
-make test
-```
-
-4. Deploy to LangSmith when ready:
+3. Deploy to LangSmith:
 
 ```bash
 uv run langgraph deploy
 ```
 
-See the [LangSmith CLI docs](https://docs.langchain.com/langsmith/cli#deploy) for deployment details.
+See the [CLI docs](https://docs.langchain.com/langsmith/cli#deploy) for deploy options.
+
+To set up CI instead, push this repo to GitHub and configure your deployment through the LangSmith UI.
+
+## Tests and lint
+
+```bash
+make test
+make integration-tests
+make lint
+make format
+```
+
+Integration tests are skipped unless `ANTHROPIC_API_KEY` is set.
 
 ## Reference docs
 

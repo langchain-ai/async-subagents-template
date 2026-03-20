@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any
 
 import httpx
 from deepagents import AsyncSubAgent, create_deep_agent
@@ -59,56 +58,6 @@ You are a critical reviewer.
 """.strip()
 
 
-class CompletionNotifierMiddleware(AgentMiddleware[AgentState[Any], Any, Any]):
-    async def aafter_agent(
-        self, state: AgentState[Any], runtime: Runtime[Any]
-    ) -> dict[str, Any] | None:
-        """Notifier."""
-        config = get_config()
-        configurable = config.get(CONF, {})
-        parent_thread_id = configurable.get("parent_thread_id")
-        parent_assistant_id = configurable.get("parent_assistant_id")
-        subagent_name = configurable.get("subagent_name") or "general-purpose"
-        parent_url = configurable.get("parent_url")
-        parent_headers = configurable.get("parent_headers")
-
-        if not parent_thread_id or not parent_assistant_id:
-            return None
-
-        messages = state.get("messages", [])
-        last_msg = ""
-        if messages:
-            last = messages[-1]
-            if hasattr(last, "content"):
-                content = last.content
-                last_msg = content if isinstance(content, str) else str(content)
-            elif isinstance(last, dict):
-                content = last.get("content", "")
-                last_msg = content if isinstance(content, str) else str(content)
-
-        summary = last_msg[:500] if last_msg else "(completed)"
-        notification = f"[Async subagent '{subagent_name}' has completed] Result: {summary}"
-
-        try:
-            client = get_client(url=parent_url, headers=parent_headers)
-            await client.runs.create(
-                thread_id=parent_thread_id,
-                assistant_id=parent_assistant_id,
-                input={"messages": [{"role": "user", "content": notification}]},
-            )
-            logger.info(
-                "Notified parent thread %s that subagent '%s' completed",
-                parent_thread_id,
-                subagent_name,
-            )
-        except Exception:
-            logger.warning(
-                "Failed to notify parent thread %s",
-                parent_thread_id,
-                exc_info=True,
-            )
-        return None
-
 
 @tool
 def utc_now() -> str:
@@ -137,11 +86,6 @@ researcher_graph = create_deep_agent(
     model=DEFAULT_MODEL,
     tools=[utc_now, web_fetch],
     system_prompt=RESEARCHER_SYSTEM_PROMPT,
-    middleware=[CompletionNotifierMiddleware()],
-    interrupt_on={
-        "execute": True,
-        "write_file": True,
-    },
     name="researcher",
 )
 
