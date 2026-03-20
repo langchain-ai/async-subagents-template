@@ -50,6 +50,12 @@ def utc_now() -> str:
     return datetime.now(tz=timezone.utc).isoformat()
 
 
+# !!! warning "SSRF Risk for Self-Hosted Deployments"
+#     This tool is included as an example since it doesn't require secrets.
+#     It's safe for LangSmith deployments, but for self-hosted deployments,
+#     you should either rewrite this tool to prevent SSRF attacks (e.g.,
+#     block private IP ranges, validate DNS resolution) or configure
+#     network-level controls to restrict inbound access.
 @tool
 async def web_fetch(url: str) -> str:
     """Fetch a URL and return its body as text.
