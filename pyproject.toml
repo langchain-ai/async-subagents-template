@@ -29,4 +29,4 @@ module-root = "src"
 source-include = ["langgraph.json"]
 
 [tool.uv.sources]
-deepagents = { path = "../deepagents/libs/deepagents" }
+deepagents = { git = "https://github.com/langchain-ai/deepagents.git", subdirectory = "libs/deepagents" }
