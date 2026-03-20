@@ -12,23 +12,13 @@ from langchain.tools import tool
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = os.getenv("ASYNC_SUBAGENTS_MODEL", "anthropic:claude-sonnet-4-6")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "anthropic:claude-sonnet-4-6")
 
 _http_client = httpx.AsyncClient(
     headers={"User-Agent": "async-subagents-template/0.1"},
     timeout=10,
     follow_redirects=True,
 )
-
-
-RESEARCHER_SYSTEM_PROMPT = """
-You are a focused researcher.
-
-- Gather evidence using available tools.
-- List assumptions.
-- Report contradictions clearly.
-- Output should be concise and source-grounded.
-""".strip()
 
 
 @tool
@@ -60,6 +50,16 @@ async def web_fetch(url: str) -> str:
         return f"Error fetching {url}: {exc}"
 
 
+RESEARCHER_SYSTEM_PROMPT = """
+You are a focused researcher.
+
+- Gather evidence using available tools.
+- List assumptions.
+- Report contradictions clearly.
+- Output should be concise and source-grounded.
+""".strip()
+
+
 researcher_graph = create_deep_agent(
     model=DEFAULT_MODEL,
     tools=[utc_now, web_fetch],
@@ -68,23 +68,17 @@ researcher_graph = create_deep_agent(
 )
 
 
-ASYNC_SUBAGENTS: list[AsyncSubAgent] = [
-    {
-        "name": "researcher",
-        "description": "Use for evidence collection and source-grounded fact finding.",
-        # graph_id must match the key in langgraph.json's "graphs" object,
-        # which tells LangGraph which graph to invoke for this subagent.
-        "graph_id": "researcher",
-    },
-]
-
 supervisor_agent = create_deep_agent(
     model=DEFAULT_MODEL,
     tools=[utc_now, web_fetch],
-    subagents=ASYNC_SUBAGENTS,
-    interrupt_on={
-        "execute": True,
-        "write_file": True,
-    },
+    subagents=[
+        {
+            "name": "researcher",
+            "description": "Use for evidence collection and source-grounded fact finding.",
+            # graph_id must match the key in langgraph.json's "graphs" object,
+            # which tells LangGraph which graph to invoke for this subagent.
+            "graph_id": "researcher",
+        },
+    ],
     name="supervisor_agent",
 )
