@@ -44,16 +44,6 @@ You are a focused researcher.
 - Output should be concise and source-grounded.
 """.strip()
 
-CRITIC_SYSTEM_PROMPT = """
-You are a critical reviewer.
-
-- Find weak logic and untested assumptions.
-- Identify missing constraints and edge cases.
-- Suggest specific improvements.
-- Keep feedback concise and actionable.
-""".strip()
-
-
 @tool
 def utc_now() -> str:
     """Return the current UTC timestamp in ISO format."""
